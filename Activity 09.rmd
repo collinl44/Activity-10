@@ -1,0 +1,95 @@
+---
+title: "Activity 09"
+author: "Collin M. Lu"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## The Collatz Conjecture
+
+The Collatz Conjecture is a famous mathematical sequence that contains two relatively simple equations, aimed to transform any positive integer into the number 1. The operation states if the number is even, divide by two. Then if the number is odd, triple it and add one. What we learned from Activity #3 and the code chuck below is that although the histogram is skewed left, larger integers don't necessarily have a larger stopping time.
+
+```{r Collatz Conjecture, echo=FALSE}
+#Chunk was included to give back a value for a number when put into the collatz conjecture
+get_collatz_conjecture <- function(start_int, stop_num = 0){
+  if (start_int == 1) {
+    return(stop_num)
+  } else if (start_int %% 2 == 0) {
+    get_collatz_conjecture(start_int = start_int / 2, stop_num = stop_num + 1)
+  } else {
+    get_collatz_conjecture(start_int = 3 * start_int + 1, stop_num = stop_num + 1)
+  }
+}
+```
+
+```{r Stopping Numbers Histogram, echo=FALSE}
+#Chunk was included to create the histogram of stopping numbers
+collatz_conjecture_vec <- Vectorize(
+  FUN = get_collatz_conjecture,
+  vectorize.args = "start_int"
+)
+hist(x = collatz_conjecture_vec(start_int = 1:10000),
+     main = "Histogram of Stopping Numbers",
+     xlab = "Stopping Numbers")
+```
+
+## Price of Diamonds
+
+The price of diamonds can be seen as a positive correlation when considering the carat. In other words, as the carat increases, the prices of the diamonds tend to increase as well. When looking at the visualization below, the different types of cuts of diamonds can be seen as each color. The major takeaway from this scatter plot is that prices of diamonds increase when the carat is high, no matter the cut.
+
+```{r Diamond Scatter Plot, echo=FALSE}
+#Chunk was included to produce the scatter plot
+library(ggplot2)
+library(tidyverse)
+
+ggplot(diamonds) +
+  aes(x = carat, y = price, colour = cut) +
+  geom_point(shape = "circle", size = 1.5) +
+  scale_color_hue(direction = 1) +
+  theme_minimal()
+```
+
+From looking at the table below, we can tell that the centers (median and mean) of each type of cut are relatively similar. As the cut becomes better quality, the length's tend to decrease. The standard deviation also remains somewhat constant across all cuts, meaning outliers aren't playing a huge factor in calculating these statistics. Lastly, the count attribute shows that there are significantly more higher quality cut diamonds than lower quality cut diamonds in the sample.
+
+```{r Diamonds Table, echo=FALSE}
+library(knitr)
+
+#Chunk was included to create the diamond data table
+diamonds_table <- diamonds %>%
+  group_by(cut) %>%
+  select(cut, z) %>%
+  summarize(
+    across(
+      .cols = where(is.numeric),
+      .fns = list(
+        min = ~min(.x, na.rm = TRUE),
+        Q1 = ~quantile(.x, probs = 0.20, na.rm = TRUE),
+        Q2 = ~quantile(.x, probs = 0.40, na.rm = TRUE),
+        median = ~median(.x, na.rm = TRUE),
+        Q3 = ~quantile(.x, probs = 0.60, na.rm = TRUE),
+        Q4 = ~quantile(.x, probs = 0.80, na.rm = TRUE),
+        max = ~max(.x, na.rm = TRUE),
+        sam = ~mean(.x, na.rm = TRUE),
+        sasd = ~sd(.x, na.rm = TRUE)
+      )
+    ),
+    count = n()
+  )
+
+kable(diamonds_table)
+```
+
+## What I've Learned
+
+So far this semester, I've learned lots about R and coding overall. Prior to taking this course, my knowledge about creating visualizations and tables by coding was slim to none. One of major the things I've learned is the importance of functions and naming functions to create effective lines of code. Naming functions is crucial to create organized, as well as effective, code. Another major concept that I've learned about is data wrangling. Data wrangling is a huge part of the statistics industry, so I'm glad to have been exposed to it before I begin taking higher level statistics and coding courses.
+
+```{r Code Appendix}
+#| ref.label = knitr::all_labels(),
+#| echo=TRUE,
+#| eval=FALSE
+```
+
